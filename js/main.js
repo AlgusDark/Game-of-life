@@ -1,3 +1,8 @@
+/**
+ * @author AlgusDark
+ * @version 1.0
+ */
+
 $(function(){
 	
 	init_board(30);
@@ -6,7 +11,10 @@ $(function(){
 
 });
 
-// Function to draw the init board
+/**
+ * Function to draw a board in html.
+ * @param {int} board_size - The size*size board.
+ */
 function init_board(board_size)
 {
 	// We get the table board
@@ -25,7 +33,10 @@ function init_board(board_size)
    }
 }
 
-//function to draw a new step in the game
+/**
+ * Function to draw the next step in the game of life.
+ * @param {int[][]} cells - The new array of cells.
+ */
 function draw_step(cells){
 	var $board = $('#board');
 	
@@ -37,7 +48,9 @@ function draw_step(cells){
 	})
 }
 
-// Function to get the cells in the game
+/**
+ * Function transform the #table to array[][].
+ */
 function table_to_array(){
 	var cells = Array();
 
@@ -51,7 +64,12 @@ function table_to_array(){
 	return cells;
 }
 
-// Cell will live or die?
+/**
+ * Function that make most of the magic.
+ * Here we implement the algorithm to know
+ * who lives and who dies
+ * @param {int[][]} cells - The cells.
+ */
 function life(cells)
 {
 	var new_cells = Array();
@@ -74,6 +92,13 @@ function life(cells)
 	return new_cells;
 }
 
+/**
+ * Function that count the total of
+ * neighbours around one cell.
+ * @param {int} i - Row.
+ * @param {int} j - Column.
+ * @param {int[][]} cells - The cells.
+ */
 function countNeighbours(i,j,cells) {
     var neighbours = 0;
 
@@ -96,7 +121,9 @@ function countNeighbours(i,j,cells) {
     return neighbours;
 }
 
-
+/**
+ * Magic Function
+ */
 function play_game(){
 	var cells = table_to_array();
 
