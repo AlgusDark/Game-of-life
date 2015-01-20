@@ -4,11 +4,11 @@ table {
 	background: white;
 }
 td {
-    width: 40px; 
-    height: 40px;
+    width: 10px; 
+    height: 10px;
     border: 1px solid #d5d2ca;
 }
 
-.alive-1{
+.alive-true{
 	background: black;
 }

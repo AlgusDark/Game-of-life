@@ -1,135 +1,140 @@
 /**
+ * Game Of life
  * @author AlgusDark
- * @version 1.0
+ * @version 2.0
  */
 
 $(function(){
-	
-	init_board(30);
-
-	play_game();
-
+	var game = new GameOfLife(42); // You can change the board size, but 42 is the answer to life, universe and everything.
+	game.play_game();
 });
 
 /**
- * Function to draw a board in html.
- * @param {int} board_size - The size*size board.
+ * Creates a new Cell.
+ * @class
  */
-function init_board(board_size)
-{
-	// We get the table board
-	var $board = $('#board');
-
-	$board.data('size', board_size);
-
-	for(i=0; i<board_size; i++){
-		var row = $('<tr></tr>');
-		for(j=0; j<board_size; j++){
-			var alive = Math.round(Math.random());
-			var column = $('<td></td>').data('alive', alive).addClass('alive-'+alive);
-			row.append(column);
-		}
-		$board.append(row);
-   }
+function Cell() {
+	this.neighbors = 0;
+	this.alive = Math.round(Math.random()) == 1;
 }
 
 /**
- * Function to draw the next step in the game of life.
- * @param {int[][]} cells - The new array of cells.
+ * Returns 1 or 0 if the cell is alive or dead
+ * @returns {Number} numeric boolean representation
  */
-function draw_step(cells){
-	var $board = $('#board');
-	
-	$("#board tr").each(function(i, v){
-	    $(this).children('td').each(function(j, w){
-	    	var alive = cells[i][j];
-	        $(this).data('alive', alive).removeClass().addClass('alive-'+alive);
-	    }); 
-	})
+Cell.prototype.toInt = function () { return (this.alive) ? 1 : 0 }
+
+/**
+ * Save the next step of the cell
+ */
+Cell.prototype.next_step = function () { this.alive = (this.alive) ? this.neighbors == 2 || this.neighbors == 3 : this.neighbors == 3; }
+
+/**
+ * Game Of Life.
+ * @class
+ * @param {Number} board size
+ */
+function GameOfLife(board_size){
+	this.cells = Array();
+	this.init_cells(board_size);
+	this.init_board(board_size);
 }
 
 /**
- * Function transform the #table to array[][].
+ * Populate cells array with cell objects
  */
-function table_to_array(){
-	var cells = Array();
-
-	$("#board tr").each(function(i, v){
-    	cells[i] = Array();
-	    $(this).children('td').each(function(j, w){
-	        cells[i][j] = $(this).data('alive');
-	    }); 
-	})
-
-	return cells;
-}
-
-/**
- * Function that make most of the magic.
- * Here we implement the algorithm to know
- * who lives and who dies
- * @param {int[][]} cells - The cells.
- */
-function life(cells)
-{
-	var new_cells = Array();
-	for (var i = 0; i < cells.length; i++) {
-		new_cells[i] = Array();
-		for (var j = 0; j < cells.length; j++) {
-			var is_alive = cells[i][j];
-			var neighbours = countNeighbours(i,j, cells);
-			
-			if (is_alive == 1){
-				if (neighbours < 2 || neighbours > 3) {new_cells[i][j] = 0}
-				else if(neighbours >= 2 || neighbours <= 3 ) {new_cells[i][j] = 1}
-			}else{
-				if (neighbours == 3) {new_cells[i][j] = 1}
-				else{new_cells[i][j] = 0}
-			}
+GameOfLife.prototype.init_cells = function(board_size){
+	for(var i=0; i < board_size; i++){ 
+		this.cells[i] = Array();
+		for(var j=0; j < board_size; j++){
+			this.cells[i][j] = new Cell();
 		}
 	}
-
-	return new_cells;
 }
 
 /**
- * Function that count the total of
- * neighbours around one cell.
- * @param {int} i - Row.
- * @param {int} j - Column.
- * @param {int[][]} cells - The cells.
+ * Function to play the game with setTimeout
  */
-function countNeighbours(i,j,cells) {
-    var neighbours = 0;
-
-
-    function exists(i,j) {
-        return cells[i] && cells[i][j];
-    }
-        
-    if (exists(i-1, j-1)) neighbours++;
-    if (exists(i-1, j  )) neighbours++;
-    if (exists(i-1, j+1)) neighbours++;
-
-    if (exists(i,   j-1)) neighbours++;
-    if (exists(i,   j+1)) neighbours++;
-
-    if (exists(i+1, j-1)) neighbours++;
-    if (exists(i+1, j  )) neighbours++;
-    if (exists(i+1, j+1)) neighbours++;
-        
-    return neighbours;
+GameOfLife.prototype.play_game = function() {
+	this.next_step();
+	this.draw_step();
+	var that = this;
+	setTimeout(function() {that.play_game()}, 100);
 }
 
 /**
- * Magic Function
+ * Function to play the game with setTimeout
  */
-function play_game(){
-	var cells = table_to_array();
-
-	cells = life(cells);
-
-	draw_step(cells);
-
-	setTimeout(play_game, 100);
+GameOfLife.prototype.next_step = function() {
+	this.setNeighbours();
+	this.new_status();
 }
+
+/**
+ * Populate the total of neighbours inside every Cell Object
+ */
+GameOfLife.prototype.setNeighbours = function(){
+	var that = this;
+	$.each(this.cells, function(i, value) {
+		$.each(value, function(j, cell) {
+			cell.neighbors = that.countNeighbours(i,j);
+		});
+	});
+}
+
+/**
+ * Change the status of all Cells according to his neighbours
+ * and actual status
+ */
+GameOfLife.prototype.new_status = function(){
+	$.each(this.cells, function(i, value) {
+		$.each(value, function(j, cell) {
+			cell.next_step();
+		});
+	});
+}
+
+/**
+ * Returns the total of neighbours around the 
+ * cell in position [i][j]
+ * @param {Number} row position
+ * @param {Number} column position
+ * @returns {Number} sum of array numbers
+ */
+GameOfLife.prototype.countNeighbours = function(i,j) {
+	var that = this;
+	return ([[-1,-1], [-1, 0], [-1,+1], [0,-1], [0,+1],[+1, -1], [+1,0], [+1,+1] ].map(function(pos) {
+		return (that.cells[i+pos[0]] && that.cells[i+pos[0]][j+pos[1]]) ? that.cells[i+pos[0]][j+pos[1]].toInt() : 0;
+	})).reduce(function(a, b) {
+		return a + b;
+	});
+}
+
+/**
+ * Init html board "<table>"
+ * Only for the sake of the html presentation
+ */
+GameOfLife.prototype.init_board = function(board_size) {
+	var _data = Array();
+	for(i=0; i < board_size; i++){
+		var row = $('<tr></tr>');
+		for(j=0; j < board_size; j++){
+			row.append($('<td></td>').addClass('alive-'+this.cells[i][j].alive));
+		}
+		_data.push(row);
+	}
+	$('#board').append(_data);
+}
+/**
+ * Draw the new representation of the board "<table>"
+ * Only for the sake of the html presentation
+ */
+GameOfLife.prototype.draw_step = function() {
+	var that = this;
+	$("#board tr").each(function(i, v){
+	    $(this).children('td').each(function(j, w){
+	    	var _alive = that.cells[i][j].alive;
+	        $(this).removeClass().addClass('alive-'+_alive);
+	    }); 
+	})
+};
