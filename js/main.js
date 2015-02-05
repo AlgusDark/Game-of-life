@@ -1,7 +1,7 @@
 /**
  * Game Of life
  * @author AlgusDark
- * @version 3.0
+ * @version 3.1
  */
 
 var App = App || {};
@@ -28,6 +28,9 @@ App.GameOfLife = function(){
       var gen = [dead, dead, this, this, dead, dead, dead, dead, dead]
       return gen[this.neighbors];
     };
+    LiveCell.prototype.setNeighbours = function(neighbors) {
+      this.neighbors = neighbors-1;
+    };
 
 
   	/**
@@ -41,6 +44,9 @@ App.GameOfLife = function(){
     DeadCell.prototype.life = function(x,y) {
       var gen = [this, this, this, new LiveCell(), this, this, this, this, this];
       return gen[this.neighbors] ;
+    };
+    DeadCell.prototype.setNeighbours = function(neighbors) {
+      this.neighbors = neighbors;
     };
 
     function Board(board_size){
@@ -74,25 +80,26 @@ App.GameOfLife = function(){
       var that = this;
       $.each(this.board, function(i, value) {
         $.each(value, function(j, cell) {
-          cell.neighbors = that.countNeighbours(i,j);
+          that.countNeighbours(i,j);
         });
       });
     }
 
     /**
      * Returns the total of neighbours around the 
-     * cell in position [i][j]
+     * cell in position [row][col]
      * @param {Number} row position
      * @param {Number} column position
      * @returns {Number} sum of array numbers
      */
-    Board.prototype.countNeighbours = function(i,j) {
-      var that = this;
-      return ([[-1,-1], [-1, 0], [-1,+1], [0,-1], [0,+1],[+1, -1], [+1,0], [+1,+1] ].map(function(pos){
-        return (that.board[i+pos[0]] && that.board[i+pos[0]][j+pos[1]]) ? that.board[i+pos[0]][j+pos[1]].toInt() : 0;
-        })).reduce(function(a, b) {
-        return a + b;
-      });
+    Board.prototype.countNeighbours = function(row, col) {
+      var neighbours = 0;
+      for( var i = Math.max(row - 1, 0); i <= Math.min(row + 1, this.board.length - 1); i++ ){
+          for ( var j = Math.max(col - 1, 0); j <= Math.min(col + 1, this.board.length - 1); j++ ){
+            neighbours += this.board[i][j].toInt();
+          }
+      }
+      this.board[row][col].setNeighbours(neighbours);
     }
 
     /**
@@ -110,6 +117,11 @@ App.GameOfLife = function(){
 
     /**
      * Populate board with dead cells
+     * Note: Here is an if statement only
+     * to random populate the board with
+     * dead or live cells. We can do this
+     * manual, so no if statement is required
+     * for the Game of Life implementation
      */
     Board.prototype.initBoard = function(board_size){
       for(var i=0; i < board_size; i++){ 
