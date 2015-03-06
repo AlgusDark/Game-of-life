@@ -1,5 +1,6 @@
 # Game-of-life
 Javascript implementation of Conway's Game of Life
+With no If Statements
 
 # Rules
 
